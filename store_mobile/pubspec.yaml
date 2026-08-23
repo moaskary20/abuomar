@@ -1,0 +1,73 @@
+name: store_mobile
+description: تطبيق حلوانى ابوعمر — متجر حلويات عربي
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  provider: ^6.1.2
+  shared_preferences: ^2.3.3
+  cached_network_image: ^3.4.1
+  google_fonts: ^6.2.1
+  intl: ^0.20.2
+  salomon_bottom_bar: ^3.3.2
+  video_player: ^2.10.0
+  share_plus: ^13.3.0
+  url_launcher: ^6.3.2
+  image_picker: ^1.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+  image_path: assit/logo.png
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assit/logo.png
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assit/splash.mp4
+    - assit/logo.png
+    - assit/chef_avatar.png
+    - assit/offers_gift.gif
+    - assit/rive/
+    - assit/b1.png
+    - assit/b2.png
+    - assit/b3.png
+    - assets/store/categories/
+    - assets/store/products/
+    - assets/store/products/gallery/
+  fonts:
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/Tajawal-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Tajawal-Black.ttf
+          weight: 900
