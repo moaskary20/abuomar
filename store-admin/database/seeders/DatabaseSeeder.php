@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
 
         StoreSetting::setValue(
             'store_name',
-            'متجري الإلكتروني',
+            'حلوانى ابوعمر',
             'general'
         );
 
@@ -137,102 +137,11 @@ class DatabaseSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | Categories
+        | Abo Omar pastry catalog
         |--------------------------------------------------------------------------
         */
 
-        $electronics = Category::query()->updateOrCreate(
-            ['slug' => 'electronics'],
-            [
-                'name' => 'إلكترونيات',
-                'is_active' => true,
-                'sort_order' => 1,
-            ]
-        );
-
-        $fashion = Category::query()->updateOrCreate(
-            ['slug' => 'fashion'],
-            [
-                'name' => 'أزياء',
-                'is_active' => true,
-                'sort_order' => 2,
-            ]
-        );
-
-        $home = Category::query()->updateOrCreate(
-            ['slug' => 'home'],
-            [
-                'name' => 'منزل ومطبخ',
-                'is_active' => true,
-                'sort_order' => 3,
-            ]
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Products
-        |--------------------------------------------------------------------------
-        */
-
-        $products = [
-            [
-                'name' => 'سماعات لاسلكية',
-                'slug' => 'wireless-headphones',
-                'sku' => 'SKU-1001',
-                'category_id' => $electronics->id,
-                'price' => 249.00,
-                'compare_price' => 299.00,
-                'quantity' => 40,
-                'is_featured' => true,
-                'short_description' => 'سماعات بلوتوث بجودة عالية',
-            ],
-            [
-                'name' => 'ساعة ذكية',
-                'slug' => 'smart-watch',
-                'sku' => 'SKU-1002',
-                'category_id' => $electronics->id,
-                'price' => 899.00,
-                'compare_price' => 999.00,
-                'quantity' => 15,
-                'is_featured' => true,
-                'short_description' => 'ساعة ذكية بتتبع اللياقة',
-            ],
-            [
-                'name' => 'حذاء رياضي',
-                'slug' => 'running-shoes',
-                'sku' => 'SKU-2001',
-                'category_id' => $fashion->id,
-                'price' => 399.00,
-                'quantity' => 3,
-                'low_stock_threshold' => 5,
-                'short_description' => 'حذاء مريح للجري اليومي',
-            ],
-            [
-                'name' => 'مقلاة كهربائية',
-                'slug' => 'air-fryer',
-                'sku' => 'SKU-3001',
-                'category_id' => $home->id,
-                'price' => 450.00,
-                'quantity' => 22,
-                'short_description' => 'مقلاة هوائية سعة 5 لتر',
-            ],
-        ];
-
-        $createdProducts = [];
-
-        foreach ($products as $product) {
-            $createdProducts[] = Product::query()->updateOrCreate(
-                ['slug' => $product['slug']],
-                array_merge(
-                    [
-                        'is_active' => true,
-                        'track_quantity' => true,
-                        'unit' => 'قطعة',
-                    ],
-                    $product
-                )
-            );
-        }
+        $this->call(AboOmarCatalogSeeder::class);
 
         /*
         |--------------------------------------------------------------------------
@@ -295,93 +204,85 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Demo Order
-        |--------------------------------------------------------------------------
-        */
+        $demoProducts = Product::query()->orderBy('id')->take(2)->get();
 
-        $order = Order::query()->updateOrCreate(
-            [
-                'customer_id' => $customer->id,
-                'notes' => 'طلب تجريبي',
-            ],
-            [
-                'shipping_method_id' => $shipping->id,
-                'coupon_id' => $coupon->id,
-                'status' => 'pending',
-                'payment_status' => 'unpaid',
-                'payment_method' => 'cod',
+        if ($demoProducts->count() >= 2) {
+            $first = $demoProducts[0];
+            $second = $demoProducts[1];
+            $subtotal = (float) $first->price + (float) $second->price;
+            $discount = round($subtotal * 0.10, 2);
+            $shippingAmount = 25.00;
 
-                'customer_name' => $customer->name,
-                'customer_phone' => $customer->phone,
-                'customer_email' => $customer->email,
+            $order = Order::query()->updateOrCreate(
+                [
+                    'customer_id' => $customer->id,
+                    'notes' => 'طلب تجريبي',
+                ],
+                [
+                    'shipping_method_id' => $shipping->id,
+                    'coupon_id' => $coupon->id,
+                    'status' => 'pending',
+                    'payment_status' => 'unpaid',
+                    'payment_method' => 'cod',
 
-                'shipping_city' => $customer->city,
-                'shipping_address' => $customer->address,
+                    'customer_name' => $customer->name,
+                    'customer_phone' => $customer->phone,
+                    'customer_email' => $customer->email,
 
-                'subtotal' => 648.00,
-                'discount_amount' => 64.80,
-                'shipping_amount' => 25.00,
-                'tax_amount' => 0,
-                'total' => 608.20,
+                    'shipping_city' => $customer->city,
+                    'shipping_address' => $customer->address,
 
-                'notes' => 'طلب تجريبي',
-            ]
-        );
+                    'subtotal' => $subtotal,
+                    'discount_amount' => $discount,
+                    'shipping_amount' => $shippingAmount,
+                    'tax_amount' => 0,
+                    'total' => $subtotal - $discount + $shippingAmount,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Order Items
-        |--------------------------------------------------------------------------
-        */
+                    'notes' => 'طلب تجريبي',
+                ]
+            );
 
-        OrderItem::query()->updateOrCreate(
-            [
-                'order_id' => $order->id,
-                'product_id' => $createdProducts[0]->id,
-            ],
-            [
-                'product_name' => $createdProducts[0]->name,
-                'product_sku' => $createdProducts[0]->sku,
-                'quantity' => 1,
-                'unit_price' => $createdProducts[0]->price,
-                'total' => $createdProducts[0]->price,
-            ]
-        );
+            OrderItem::query()->updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                    'product_id' => $first->id,
+                ],
+                [
+                    'product_name' => $first->name,
+                    'product_sku' => $first->sku,
+                    'quantity' => 1,
+                    'unit_price' => $first->price,
+                    'total' => $first->price,
+                ]
+            );
 
-        OrderItem::query()->updateOrCreate(
-            [
-                'order_id' => $order->id,
-                'product_id' => $createdProducts[2]->id,
-            ],
-            [
-                'product_name' => $createdProducts[2]->name,
-                'product_sku' => $createdProducts[2]->sku,
-                'quantity' => 1,
-                'unit_price' => $createdProducts[2]->price,
-                'total' => $createdProducts[2]->price,
-            ]
-        );
+            OrderItem::query()->updateOrCreate(
+                [
+                    'order_id' => $order->id,
+                    'product_id' => $second->id,
+                ],
+                [
+                    'product_name' => $second->name,
+                    'product_sku' => $second->sku,
+                    'quantity' => 1,
+                    'unit_price' => $second->price,
+                    'total' => $second->price,
+                ]
+            );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Product Review
-        |--------------------------------------------------------------------------
-        */
-
-        Review::query()->updateOrCreate(
-            [
-                'product_id' => $createdProducts[0]->id,
-                'customer_id' => $customer->id,
-            ],
-            [
-                'customer_name' => $customer->name,
-                'rating' => 5,
-                'title' => 'ممتازة',
-                'comment' => 'جودة الصوت رائعة والتوصيل سريع',
-                'is_approved' => true,
-            ]
-        );
+            Review::query()->updateOrCreate(
+                [
+                    'product_id' => $first->id,
+                    'customer_id' => $customer->id,
+                ],
+                [
+                    'customer_name' => $customer->name,
+                    'rating' => 5,
+                    'title' => 'ممتازة',
+                    'comment' => 'طعم رائع والتوصيل سريع',
+                    'is_approved' => true,
+                ]
+            );
+        }
     }
 }
