@@ -1,58 +1,26 @@
-import 'package:flutter/foundation.dart';
-
 class AppConfig {
   AppConfig._();
 
-  /// يمكن تمريره عند التشغيل أو البناء:
+  /// يمكن تجاوزه عند الحاجة:
   /// flutter run --dart-define=API_BASE_URL=http://192.168.1.44:8000
-  /// flutter build appbundle --dart-define=API_BASE_URL=https://api.example.com
   static const String _envApiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
-  /// رابط الـ API للإنتاج (HTTPS فقط). غيّره لنطاق السيرفر الفعلي قبل الرفع.
-  static const String productionApiBaseUrl = 'https://aboomarpastry.com';
+  /// سيرفر التطبيق الخارجي — كل البيانات تُسحب منه.
+  static const String productionApiBaseUrl =
+      'https://abouomar.caesar-agency.co.uk';
 
-  /// IP جهاز الكمبيوتر على نفس شبكة الموبايل (للتطوير فقط)
-  static const String lanHost = '192.168.1.44';
-  static const int apiPort = 8000;
-
-  /// استخدم صور السيرفر من قاعدة البيانات (لوحة التحكم)
   static const bool preferBundledMedia = false;
 
   static String get apiBaseUrl => apiBaseCandidates.first;
 
-  /// جرّب عنوان الشبكة ثم المحاكي ثم localhost حتى يعمل الهاتف والمحاكي.
   static List<String> get apiBaseCandidates {
     if (_envApiBaseUrl.isNotEmpty) {
-      return [_envApiBaseUrl];
+      return [_envApiBaseUrl.replaceAll(RegExp(r'/+$'), '')];
     }
-
-    final urls = <String>[];
-    void add(String url) {
-      if (!urls.contains(url)) {
-        urls.add(url);
-      }
-    }
-
-    if (kReleaseMode) {
-      add(productionApiBaseUrl);
-      return urls;
-    }
-
-    if (kIsWeb) {
-      add('http://127.0.0.1:$apiPort');
-      add('http://localhost:$apiPort');
-      return urls;
-    }
-
-    add('http://$lanHost:$apiPort');
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      add('http://10.0.2.2:$apiPort');
-    }
-    add('http://127.0.0.1:$apiPort');
-    return urls;
+    return [productionApiBaseUrl];
   }
 
-  /// Laravel غالباً يُرجع صور 127.0.0.1 — نبدّلها بعنوان الـ API الفعلي.
+  /// Laravel قد يُرجع صور localhost أو نطاق قديم — نحوّلها لعنوان الـ API.
   static String rewriteMediaUrl(String url, String apiBase) {
     final cleaned = url.trim();
     if (cleaned.isEmpty) {
@@ -62,19 +30,28 @@ class AppConfig {
     if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
       return cleaned;
     }
-    const loopback = {'127.0.0.1', 'localhost'};
-    if (!loopback.contains(uri.host)) {
-      return cleaned;
-    }
     final base = Uri.tryParse(apiBase);
     if (base == null || base.host.isEmpty) {
+      return cleaned;
+    }
+    const rewriteHosts = {
+      '127.0.0.1',
+      'localhost',
+      '10.0.2.2',
+      'aboomarpastry.com',
+      'www.aboomarpastry.com',
+    };
+    final shouldRewrite = rewriteHosts.contains(uri.host) ||
+        uri.host.startsWith('192.168.') ||
+        uri.host == '0.0.0.0';
+    if (!shouldRewrite) {
       return cleaned;
     }
     return uri
         .replace(
           scheme: base.scheme.isEmpty ? uri.scheme : base.scheme,
           host: base.host,
-          port: base.hasPort ? base.port : uri.port,
+          port: base.hasPort ? base.port : (base.scheme == 'https' ? 443 : 80),
         )
         .toString();
   }
@@ -115,7 +92,7 @@ class AppConfig {
     }
     final cleaned = path.trim();
     if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
-      return cleaned;
+      return rewriteMediaUrl(cleaned, apiBaseUrl);
     }
     if (cleaned.startsWith('asset:')) {
       return cleaned;

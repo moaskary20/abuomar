@@ -47,7 +47,7 @@ class ApiClient {
         final uri = Uri.parse('$base/api/categories');
         final res = await http
             .get(uri, headers: const {'Accept': 'application/json'})
-            .timeout(const Duration(seconds: 3));
+            .timeout(const Duration(seconds: 12));
         if (res.statusCode >= 200 && res.statusCode < 300) {
           _baseUrl = base;
           _resolved = true;

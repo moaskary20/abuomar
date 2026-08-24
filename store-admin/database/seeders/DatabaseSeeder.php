@@ -19,6 +19,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Admin User
+        |--------------------------------------------------------------------------
+        */
+
         User::query()->updateOrCreate(
             ['email' => 'admin@store.test'],
             [
@@ -27,43 +33,146 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        StoreSetting::setValue('store_name', 'متجري الإلكتروني', 'general');
-        StoreSetting::setValue('store_email', 'info@store.test', 'general');
-        StoreSetting::setValue('store_phone', '0500000000', 'general');
-        StoreSetting::setValue('store_address', 'الرياض، المملكة العربية السعودية', 'general');
-        StoreSetting::setValue('currency', 'EGP', 'sales');
-        StoreSetting::setValue('tax_rate', '15', 'sales');
-        StoreSetting::setValue('order_prefix', 'ORD', 'sales');
-        StoreSetting::setValue('low_stock_alert', '1', 'sales');
+        /*
+        |--------------------------------------------------------------------------
+        | Store Settings
+        |--------------------------------------------------------------------------
+        */
 
-        StoreSetting::setValue('loyalty_enabled', '1', 'loyalty');
-        StoreSetting::setValue('loyalty_points_per_currency', '1', 'loyalty');
-        StoreSetting::setValue('loyalty_currency_per_point', '0.1', 'loyalty');
-        StoreSetting::setValue('loyalty_min_order_to_earn', '0', 'loyalty');
-        StoreSetting::setValue('loyalty_min_points_to_redeem', '50', 'loyalty');
-        StoreSetting::setValue('loyalty_max_redeem_percent', '50', 'loyalty');
-        StoreSetting::setValue('loyalty_earn_on', 'paid', 'loyalty');
+        StoreSetting::setValue(
+            'store_name',
+            'متجري الإلكتروني',
+            'general'
+        );
 
-        $electronics = Category::query()->create([
-            'name' => 'إلكترونيات',
-            'slug' => 'electronics',
-            'is_active' => true,
-            'sort_order' => 1,
-        ]);
+        StoreSetting::setValue(
+            'store_email',
+            'info@store.test',
+            'general'
+        );
 
-        $fashion = Category::query()->create([
-            'name' => 'أزياء',
-            'slug' => 'fashion',
-            'is_active' => true,
-            'sort_order' => 2,
-        ]);
+        StoreSetting::setValue(
+            'store_phone',
+            '0500000000',
+            'general'
+        );
 
-        $home = Category::query()->create([
-            'name' => 'منزل ومطبخ',
-            'slug' => 'home',
-            'is_active' => true,
-            'sort_order' => 3,
-        ]);
+        StoreSetting::setValue(
+            'store_address',
+            'الرياض، المملكة العربية السعودية',
+            'general'
+        );
+
+        StoreSetting::setValue(
+            'currency',
+            'EGP',
+            'sales'
+        );
+
+        StoreSetting::setValue(
+            'tax_rate',
+            '15',
+            'sales'
+        );
+
+        StoreSetting::setValue(
+            'order_prefix',
+            'ORD',
+            'sales'
+        );
+
+        StoreSetting::setValue(
+            'low_stock_alert',
+            '1',
+            'sales'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Loyalty Settings
+        |--------------------------------------------------------------------------
+        */
+
+        StoreSetting::setValue(
+            'loyalty_enabled',
+            '1',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_points_per_currency',
+            '1',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_currency_per_point',
+            '0.1',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_min_order_to_earn',
+            '0',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_min_points_to_redeem',
+            '50',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_max_redeem_percent',
+            '50',
+            'loyalty'
+        );
+
+        StoreSetting::setValue(
+            'loyalty_earn_on',
+            'paid',
+            'loyalty'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories
+        |--------------------------------------------------------------------------
+        */
+
+        $electronics = Category::query()->updateOrCreate(
+            ['slug' => 'electronics'],
+            [
+                'name' => 'إلكترونيات',
+                'is_active' => true,
+                'sort_order' => 1,
+            ]
+        );
+
+        $fashion = Category::query()->updateOrCreate(
+            ['slug' => 'fashion'],
+            [
+                'name' => 'أزياء',
+                'is_active' => true,
+                'sort_order' => 2,
+            ]
+        );
+
+        $home = Category::query()->updateOrCreate(
+            ['slug' => 'home'],
+            [
+                'name' => 'منزل ومطبخ',
+                'is_active' => true,
+                'sort_order' => 3,
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Products
+        |--------------------------------------------------------------------------
+        */
 
         $products = [
             [
@@ -110,97 +219,169 @@ class DatabaseSeeder extends Seeder
         ];
 
         $createdProducts = [];
+
         foreach ($products as $product) {
-            $createdProducts[] = Product::query()->create(array_merge([
-                'is_active' => true,
-                'track_quantity' => true,
-                'unit' => 'قطعة',
-            ], $product));
+            $createdProducts[] = Product::query()->updateOrCreate(
+                ['slug' => $product['slug']],
+                array_merge(
+                    [
+                        'is_active' => true,
+                        'track_quantity' => true,
+                        'unit' => 'قطعة',
+                    ],
+                    $product
+                )
+            );
         }
 
-        $customer = Customer::query()->create([
-            'name' => 'أحمد محمد',
-            'email' => 'ahmed@example.com',
-            'phone' => '0501234567',
-            'password' => 'password',
-            'city' => 'الرياض',
-            'address' => 'حي النرجس، شارع الأمير',
-            'is_active' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Customer
+        |--------------------------------------------------------------------------
+        */
 
-        $shipping = ShippingMethod::query()->create([
-            'name' => 'توصيل عادي',
-            'price' => 25,
-            'estimated_days' => 3,
-            'is_active' => true,
-            'description' => 'توصيل خلال 2-4 أيام عمل',
-        ]);
+        $customer = Customer::query()->updateOrCreate(
+            ['email' => 'ahmed@example.com'],
+            [
+                'name' => 'أحمد محمد',
+                'phone' => '0501234567',
+                'password' => 'password',
+                'city' => 'الرياض',
+                'address' => 'حي النرجس، شارع الأمير',
+                'is_active' => true,
+            ]
+        );
 
-        ShippingMethod::query()->create([
-            'name' => 'توصيل سريع',
-            'price' => 45,
-            'estimated_days' => 1,
-            'is_active' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Shipping Methods
+        |--------------------------------------------------------------------------
+        */
 
-        $coupon = Coupon::query()->create([
-            'code' => 'WELCOME10',
-            'name' => 'خصم ترحيبي 10%',
-            'type' => 'percentage',
-            'value' => 10,
-            'min_order_amount' => 100,
-            'usage_limit' => 100,
-            'is_active' => true,
-        ]);
+        $shipping = ShippingMethod::query()->updateOrCreate(
+            ['name' => 'توصيل عادي'],
+            [
+                'price' => 25,
+                'estimated_days' => 3,
+                'is_active' => true,
+                'description' => 'توصيل خلال 2-4 أيام عمل',
+            ]
+        );
 
-        $order = Order::query()->create([
-            'customer_id' => $customer->id,
-            'shipping_method_id' => $shipping->id,
-            'coupon_id' => $coupon->id,
-            'status' => 'pending',
-            'payment_status' => 'unpaid',
-            'payment_method' => 'cod',
-            'customer_name' => $customer->name,
-            'customer_phone' => $customer->phone,
-            'customer_email' => $customer->email,
-            'shipping_city' => $customer->city,
-            'shipping_address' => $customer->address,
-            'subtotal' => 648.00,
-            'discount_amount' => 64.80,
-            'shipping_amount' => 25.00,
-            'tax_amount' => 0,
-            'total' => 608.20,
-            'notes' => 'طلب تجريبي',
-        ]);
+        ShippingMethod::query()->updateOrCreate(
+            ['name' => 'توصيل سريع'],
+            [
+                'price' => 45,
+                'estimated_days' => 1,
+                'is_active' => true,
+            ]
+        );
 
-        OrderItem::query()->create([
-            'order_id' => $order->id,
-            'product_id' => $createdProducts[0]->id,
-            'product_name' => $createdProducts[0]->name,
-            'product_sku' => $createdProducts[0]->sku,
-            'quantity' => 1,
-            'unit_price' => $createdProducts[0]->price,
-            'total' => $createdProducts[0]->price,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Coupon
+        |--------------------------------------------------------------------------
+        */
 
-        OrderItem::query()->create([
-            'order_id' => $order->id,
-            'product_id' => $createdProducts[2]->id,
-            'product_name' => $createdProducts[2]->name,
-            'product_sku' => $createdProducts[2]->sku,
-            'quantity' => 1,
-            'unit_price' => $createdProducts[2]->price,
-            'total' => $createdProducts[2]->price,
-        ]);
+        $coupon = Coupon::query()->updateOrCreate(
+            ['code' => 'WELCOME10'],
+            [
+                'name' => 'خصم ترحيبي 10%',
+                'type' => 'percentage',
+                'value' => 10,
+                'min_order_amount' => 100,
+                'usage_limit' => 100,
+                'is_active' => true,
+            ]
+        );
 
-        Review::query()->create([
-            'product_id' => $createdProducts[0]->id,
-            'customer_id' => $customer->id,
-            'customer_name' => $customer->name,
-            'rating' => 5,
-            'title' => 'ممتازة',
-            'comment' => 'جودة الصوت رائعة والتوصيل سريع',
-            'is_approved' => true,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Demo Order
+        |--------------------------------------------------------------------------
+        */
+
+        $order = Order::query()->updateOrCreate(
+            [
+                'customer_id' => $customer->id,
+                'notes' => 'طلب تجريبي',
+            ],
+            [
+                'shipping_method_id' => $shipping->id,
+                'coupon_id' => $coupon->id,
+                'status' => 'pending',
+                'payment_status' => 'unpaid',
+                'payment_method' => 'cod',
+
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'customer_email' => $customer->email,
+
+                'shipping_city' => $customer->city,
+                'shipping_address' => $customer->address,
+
+                'subtotal' => 648.00,
+                'discount_amount' => 64.80,
+                'shipping_amount' => 25.00,
+                'tax_amount' => 0,
+                'total' => 608.20,
+
+                'notes' => 'طلب تجريبي',
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Order Items
+        |--------------------------------------------------------------------------
+        */
+
+        OrderItem::query()->updateOrCreate(
+            [
+                'order_id' => $order->id,
+                'product_id' => $createdProducts[0]->id,
+            ],
+            [
+                'product_name' => $createdProducts[0]->name,
+                'product_sku' => $createdProducts[0]->sku,
+                'quantity' => 1,
+                'unit_price' => $createdProducts[0]->price,
+                'total' => $createdProducts[0]->price,
+            ]
+        );
+
+        OrderItem::query()->updateOrCreate(
+            [
+                'order_id' => $order->id,
+                'product_id' => $createdProducts[2]->id,
+            ],
+            [
+                'product_name' => $createdProducts[2]->name,
+                'product_sku' => $createdProducts[2]->sku,
+                'quantity' => 1,
+                'unit_price' => $createdProducts[2]->price,
+                'total' => $createdProducts[2]->price,
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Product Review
+        |--------------------------------------------------------------------------
+        */
+
+        Review::query()->updateOrCreate(
+            [
+                'product_id' => $createdProducts[0]->id,
+                'customer_id' => $customer->id,
+            ],
+            [
+                'customer_name' => $customer->name,
+                'rating' => 5,
+                'title' => 'ممتازة',
+                'comment' => 'جودة الصوت رائعة والتوصيل سريع',
+                'is_approved' => true,
+            ]
+        );
     }
 }

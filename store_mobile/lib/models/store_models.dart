@@ -1,3 +1,5 @@
+import '../core/config.dart';
+
 class Category {
   const Category({
     required this.id,
@@ -13,7 +15,7 @@ class Category {
     return Category(
       id: _jsonInt(json['id']) ?? 0,
       name: (json['name'] as String?)?.trim() ?? '',
-      imageUrl: (json['image_url'] as String?)?.trim() ?? '',
+      imageUrl: AppConfig.mediaUrl(json['image_url'] as String?),
     );
   }
 }
@@ -43,7 +45,7 @@ class HomeBanner {
   factory HomeBanner.fromJson(Map<String, dynamic> json) {
     return HomeBanner(
       id: _jsonInt(json['id']) ?? 0,
-      imageUrl: (json['image_url'] as String?)?.trim() ?? '',
+      imageUrl: AppConfig.mediaUrl(json['image_url'] as String?),
       title: json['title'] as String?,
       subtitle: json['subtitle'] as String?,
       linkType: (json['link_type'] as String?) ?? 'none',
@@ -131,7 +133,10 @@ class Product {
         : const <ProductReview>[];
     final galleryRaw = json['gallery_urls'];
     final gallery = galleryRaw is List
-        ? galleryRaw.map((e) => '$e').where((e) => e.trim().isNotEmpty).toList()
+        ? galleryRaw
+            .map((e) => AppConfig.mediaUrl('$e'))
+            .where((e) => e.trim().isNotEmpty)
+            .toList()
         : const <String>[];
 
     return Product(
@@ -150,7 +155,7 @@ class Product {
       lowStockThreshold: _jsonInt(json['low_stock_threshold']) ?? 5,
       trackQuantity: _jsonBool(json['track_quantity'], fallback: true),
       isFeatured: _jsonBool(json['is_featured']),
-      imageUrl: (json['image_url'] as String?)?.trim() ?? '',
+      imageUrl: AppConfig.mediaUrl(json['image_url'] as String?),
       galleryUrls: gallery,
       weight: _jsonDouble(json['weight']),
       unit: (json['unit'] as String?)?.trim().isNotEmpty == true
@@ -507,7 +512,7 @@ class OrderLineItem {
     return OrderLineItem(
       productId: _jsonInt(json['product_id']) ?? 0,
       name: (json['name'] as String?)?.trim() ?? '',
-      imageUrl: (json['image_url'] as String?)?.trim() ?? '',
+      imageUrl: AppConfig.mediaUrl(json['image_url'] as String?),
       unitPrice: _jsonDouble(json['unit_price']) ?? 0,
       quantity: _jsonInt(json['quantity']) ?? 1,
     );
