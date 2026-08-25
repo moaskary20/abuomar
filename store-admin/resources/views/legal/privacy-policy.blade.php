@@ -1,104 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="index,follow">
-    <title>Privacy Policy | {{ $appName }}</title>
-    <meta name="description" content="Privacy Policy for the Helwany Abu Omar mobile app and online store. Explains what data we collect, how we use it, and your rights.">
-    <link rel="canonical" href="{{ url('/privacy-policy') }}">
-    <style>
-        :root {
-            --ink: #1f1712;
-            --muted: #5c534c;
-            --paper: #f7f1ea;
-            --card: #fffdf9;
-            --line: #e6d9cc;
-            --teal: #0f766e;
-            --teal-dark: #115e59;
-            --cocoa: #7c4a2d;
-        }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            margin: 0;
-            font-family: Georgia, "Times New Roman", serif;
-            color: var(--ink);
-            background: var(--paper);
-            line-height: 1.7;
-        }
-        header, main, footer { max-width: 820px; margin: 0 auto; padding: 0 20px; }
-        header {
-            padding-top: 36px;
-            padding-bottom: 8px;
-        }
-        .brand {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            font-size: 13px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            color: var(--teal);
-            font-weight: 700;
-        }
-        h1 {
-            font-size: clamp(1.8rem, 4vw, 2.4rem);
-            margin: 8px 0 6px;
-            line-height: 1.2;
-        }
-        .meta {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            color: var(--muted);
-            font-size: 14px;
-            margin-bottom: 28px;
-        }
-        main {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            padding: 28px 28px 40px;
-            margin-bottom: 32px;
-            box-shadow: 0 10px 30px rgba(31, 23, 18, .04);
-        }
-        h2 {
-            font-size: 1.15rem;
-            margin-top: 28px;
-            margin-bottom: 8px;
-            color: var(--teal-dark);
-        }
-        p, li { font-size: 1.02rem; }
-        ul { padding-left: 1.2rem; }
-        li { margin: 6px 0; }
-        a { color: var(--teal-dark); }
-        .toc {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            background: #f3ebe3;
-            border-radius: 12px;
-            padding: 16px 18px;
-            font-size: 14px;
-        }
-        .toc a { text-decoration: none; }
-        .toc ol { margin: 8px 0 0; padding-left: 1.2rem; }
-        footer {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            font-size: 13px;
-            color: var(--muted);
-            padding-bottom: 40px;
-        }
-        .ar-name { color: var(--cocoa); font-family: "Segoe UI", Tahoma, sans-serif; }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="brand">{{ $appName }}</div>
-        <h1>Privacy Policy</h1>
-        <p class="meta">
-            Effective date: {{ $effectiveDate }}<br>
-            Applies to the {{ $appName }} mobile application (<span class="ar-name">{{ $appNameAr }}</span>)
-            and the website at <a href="{{ $websiteUrl }}">{{ $websiteUrl }}</a>.
-        </p>
-    </header>
+@extends('legal.layout')
 
-    <main>
+@section('title', 'Privacy Policy')
+@section('description', 'Privacy Policy for the Helwany Abu Omar mobile app and online store. Explains what data we collect, how we use it, and your rights.')
+@section('canonical', url('/privacy-policy'))
+@section('heading', 'Privacy Policy')
+
+@section('meta')
+    Effective date: {{ $effectiveDate }}<br>
+    Applies to the {{ $appName }} mobile application (<span class="ar-name">{{ $appNameAr }}</span>)
+    and the website at <a href="{{ $websiteUrl }}">{{ $websiteUrl }}</a>.
+@endsection
+
+@section('content')
         <nav class="toc" aria-label="Contents">
             <strong>Contents</strong>
             <ol>
@@ -227,8 +140,10 @@
         <p>
             We keep account, order, and loyalty records for as long as your account is active and as
             needed for accounting, delivery disputes, and legal obligations. You may request deletion
-            of your account (see Section 9). Some records may be retained in anonymized or aggregated
-            form, or where we must keep them under Egyptian commercial or tax rules.
+            of your account on our
+            <a href="{{ route('delete-account') }}">Delete account</a> page.
+            Some records may be retained in anonymized or aggregated form, or where we must keep them
+            under Egyptian commercial or tax rules.
         </p>
         <p>
             Data stored only on your device (cart, settings, local profile photo) remains until you
@@ -253,10 +168,11 @@
             <li>Stop using the app and uninstall it at any time</li>
         </ul>
         <p>
-            To request access, correction, or deletion, email us at
+            To delete your account, follow the steps on
+            <a href="{{ route('delete-account') }}">{{ url('/delete-account') }}</a>.
+            For other access or correction requests, email
             <a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a>
-            from the email address registered on your account, or contact us using the details below.
-            We may need to verify your identity before completing the request.
+            from the email address registered on your account.
         </p>
 
         <h2 id="children">10. Children’s privacy</h2>
@@ -296,11 +212,4 @@
             For Google Play listing purposes, this page is the official Privacy Policy URL for the
             {{ $appName }} Android application.
         </p>
-    </main>
-
-    <footer>
-        &copy; {{ date('Y') }} {{ $appName }}. All rights reserved.
-        <a href="{{ url('/privacy-policy') }}">Privacy Policy</a>
-    </footer>
-</body>
-</html>
+@endsection

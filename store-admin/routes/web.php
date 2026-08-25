@@ -10,3 +10,6 @@ Route::get('/', function () {
 Route::get('/privacy-policy', [LegalController::class, 'privacyPolicy'])->name('privacy-policy');
 Route::get('/privacy', [LegalController::class, 'privacyPolicy']);
 Route::get('/privacy.html', [LegalController::class, 'privacyPolicy']);
+
+Route::get('/delete-account', [LegalController::class, 'deleteAccount'])->name('delete-account');
+Route::get('/account-deletion', [LegalController::class, 'deleteAccount']);

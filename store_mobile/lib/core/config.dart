@@ -75,6 +75,8 @@ class AppConfig {
   static const String storeWebsite = 'https://aboomarpastry.com';
   static const String privacyPolicyUrl =
       'https://abouomar.caesar-agency.co.uk/privacy-policy';
+  static const String accountDeletionUrl =
+      'https://abouomar.caesar-agency.co.uk/delete-account';
   static const String termsUrl = '$storeWebsite/terms.html';
   static const String storeFacebook =
       'https://www.facebook.com/share/1EgJ8oiL77/?mibextid=wwXIfr';
