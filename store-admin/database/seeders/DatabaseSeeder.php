@@ -142,6 +142,7 @@ class DatabaseSeeder extends Seeder
         */
 
         $this->call(AboOmarCatalogSeeder::class);
+        $this->call(HomeBannersSeeder::class);
 
         /*
         |--------------------------------------------------------------------------
