@@ -35,6 +35,7 @@ class Order extends Model
         'paid_at',
         'shipped_at',
         'delivered_at',
+        'admin_viewed_at',
         'loyalty_processed_at',
     ];
 
@@ -50,8 +51,28 @@ class Order extends Model
             'paid_at' => 'datetime',
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'admin_viewed_at' => 'datetime',
             'loyalty_processed_at' => 'datetime',
         ];
+    }
+
+    public function isUnviewedByAdmin(): bool
+    {
+        return $this->admin_viewed_at === null;
+    }
+
+    public function markViewedByAdmin(): void
+    {
+        if ($this->admin_viewed_at !== null) {
+            return;
+        }
+
+        $this->forceFill(['admin_viewed_at' => now()])->saveQuietly();
+    }
+
+    public static function unviewedCount(): int
+    {
+        return static::query()->whereNull('admin_viewed_at')->count();
     }
 
     protected static function booted(): void

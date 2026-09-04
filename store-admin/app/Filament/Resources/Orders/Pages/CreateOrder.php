@@ -18,6 +18,8 @@ class CreateOrder extends CreateRecord
         $points = max(0, (int) ($data['points_to_redeem'] ?? 0));
         $data['points_to_redeem'] = $points;
         $data['points_discount_amount'] = round($points * LoyaltySetting::currencyPerPoint(), 2);
+        // طلبات تُنشأ من اللوحة تُعتبر مفتوحة مسبقاً
+        $data['admin_viewed_at'] = now();
 
         return $data;
     }

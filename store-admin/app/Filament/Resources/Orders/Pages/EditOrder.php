@@ -15,6 +15,15 @@ class EditOrder extends EditRecord
 {
     protected static string $resource = OrderResource::class;
 
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        /** @var Order $order */
+        $order = $this->getRecord();
+        $order->markViewedByAdmin();
+    }
+
     protected function getHeaderActions(): array
     {
         return [

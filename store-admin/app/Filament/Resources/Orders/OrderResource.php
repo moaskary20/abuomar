@@ -46,6 +46,27 @@ class OrderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'الطلبات';
 
+    public static function getNavigationBadge(): ?string
+    {
+        $count = Order::unviewedCount();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return Order::unviewedCount() > 0 ? 'danger' : null;
+    }
+
+    public static function getNavigationBadgeTooltip(): string|\Illuminate\Contracts\Support\Htmlable|null
+    {
+        $count = Order::unviewedCount();
+
+        return $count > 0
+            ? "{$count} طلب جديد لم يُفتح"
+            : null;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
