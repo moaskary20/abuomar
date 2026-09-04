@@ -18,13 +18,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscure = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.read<AuthController>();
     try {
       await auth.login(
-        email: _emailController.text,
+        phone: _phoneController.text,
         password: _passwordController.text,
       );
       if (!mounted) return;
@@ -159,18 +159,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _AuthField3D(
-                            controller: _emailController,
-                            label: 'البريد الإلكتروني',
-                            hint: 'example@email.com',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
+                            controller: _phoneController,
+                            label: 'رقم الجوال',
+                            hint: '01xxxxxxxxx',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
                             validator: (value) {
                               final text = value?.trim() ?? '';
                               if (text.isEmpty) {
-                                return 'أدخل البريد الإلكتروني';
+                                return 'أدخل رقم الجوال';
                               }
-                              if (!text.contains('@')) {
-                                return 'بريد إلكتروني غير صالح';
+                              final digits = text.replaceAll(RegExp(r'\D'), '');
+                              if (digits.length < 10) {
+                                return 'أدخل رقم جوال صحيح';
                               }
                               return null;
                             },

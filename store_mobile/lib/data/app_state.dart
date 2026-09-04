@@ -653,6 +653,20 @@ class AuthController extends ChangeNotifier {
   bool get isLoading => _loading;
   bool get isReady => _ready;
 
+  String _avatarStorageKey(AuthUser user) {
+    final phone = user.phone?.trim() ?? '';
+    if (phone.isNotEmpty) {
+      return phone;
+    }
+    if (user.email.trim().isNotEmpty) {
+      return user.email.trim();
+    }
+    if (user.id != null) {
+      return 'id_${user.id}';
+    }
+    return 'guest';
+  }
+
   Future<void> _restoreSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -666,10 +680,8 @@ class AuthController extends ChangeNotifier {
         if (raw != null && raw.isNotEmpty) {
           final map = jsonDecode(raw) as Map<String, dynamic>;
           final cached = AuthUser.fromJson(map);
-          if (cached.email.isNotEmpty) {
-            final avatar = await _loadAvatar(cached.email);
-            _user = cached.copyWith(avatarBytes: avatar);
-          }
+          final avatar = await _loadAvatar(_avatarStorageKey(cached));
+          _user = cached.copyWith(avatarBytes: avatar);
         }
 
         try {
@@ -677,7 +689,7 @@ class AuthController extends ChangeNotifier {
           final userJson = me['user'];
           if (userJson is Map<String, dynamic>) {
             final remote = AuthUser.fromJson(userJson);
-            final avatar = await _loadAvatar(remote.email);
+            final avatar = await _loadAvatar(_avatarStorageKey(remote));
             _user = remote.copyWith(avatarBytes: avatar);
             await _persistSession();
           }
@@ -727,16 +739,16 @@ class AuthController extends ChangeNotifier {
       throw ApiException('استجابة غير صالحة من الخادم');
     }
     final remote = AuthUser.fromJson(userJson);
-    final avatar = await _loadAvatar(remote.email);
+    final avatar = await _loadAvatar(_avatarStorageKey(remote));
     _token = token;
     _api.setToken(token);
     _user = remote.copyWith(avatarBytes: avatar);
     await _persistSession();
   }
 
-  Future<Uint8List?> _loadAvatar(String email) async {
+  Future<Uint8List?> _loadAvatar(String key) async {
     final prefs = await SharedPreferences.getInstance();
-    final encoded = prefs.getString('$_avatarKeyPrefix${email.toLowerCase()}');
+    final encoded = prefs.getString('$_avatarKeyPrefix${key.toLowerCase()}');
     if (encoded == null || encoded.isEmpty) {
       return null;
     }
@@ -747,18 +759,18 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> _persistAvatar(String email, Uint8List? bytes) async {
+  Future<void> _persistAvatar(String key, Uint8List? bytes) async {
     final prefs = await SharedPreferences.getInstance();
-    final key = '$_avatarKeyPrefix${email.toLowerCase()}';
+    final storageKey = '$_avatarKeyPrefix${key.toLowerCase()}';
     if (bytes == null || bytes.isEmpty) {
-      await prefs.remove(key);
+      await prefs.remove(storageKey);
       return;
     }
-    await prefs.setString(key, base64Encode(bytes));
+    await prefs.setString(storageKey, base64Encode(bytes));
   }
 
   Future<void> login({
-    required String email,
+    required String phone,
     required String password,
   }) async {
     _loading = true;
@@ -767,7 +779,7 @@ class AuthController extends ChangeNotifier {
       final json = await _api.post(
         '/api/auth/login',
         body: {
-          'email': email.trim(),
+          'phone': phone.trim(),
           'password': password,
         },
       );
@@ -780,21 +792,25 @@ class AuthController extends ChangeNotifier {
 
   Future<void> register({
     required String name,
-    required String email,
     required String phone,
     required String password,
+    String? email,
   }) async {
     _loading = true;
     notifyListeners();
     try {
+      final body = <String, dynamic>{
+        'name': name.trim(),
+        'phone': phone.trim(),
+        'password': password,
+      };
+      final trimmedEmail = email?.trim() ?? '';
+      if (trimmedEmail.isNotEmpty) {
+        body['email'] = trimmedEmail;
+      }
       final json = await _api.post(
         '/api/auth/register',
-        body: {
-          'name': name.trim(),
-          'email': email.trim(),
-          'phone': phone.trim(),
-          'password': password,
-        },
+        body: body,
       );
       await _applyAuthResponse(json);
     } finally {
@@ -809,26 +825,26 @@ class AuthController extends ChangeNotifier {
     }
     _user = _user!.copyWith(avatarBytes: bytes);
     notifyListeners();
-    await _persistAvatar(_user!.email, bytes);
+    await _persistAvatar(_avatarStorageKey(_user!), bytes);
   }
 
   Future<void> clearAvatar() async {
     if (_user == null) {
       return;
     }
-    final email = _user!.email;
+    final key = _avatarStorageKey(_user!);
     _user = _user!.copyWith(clearAvatar: true);
     notifyListeners();
-    await _persistAvatar(email, null);
+    await _persistAvatar(key, null);
   }
 
-  Future<void> sendPasswordReset(String email) async {
+  Future<void> sendPasswordReset(String phone) async {
     _loading = true;
     notifyListeners();
     try {
       await _api.post(
         '/api/auth/forgot-password',
-        body: {'email': email.trim()},
+        body: {'phone': phone.trim()},
       );
     } finally {
       _loading = false;
@@ -854,11 +870,11 @@ class AddressesController extends ChangeNotifier {
   AddressesController({ApiClient? api}) : _api = api ?? ApiClient.instance;
 
   final ApiClient _api;
-  String? _ownerEmail;
+  String? _ownerKey;
   final List<DeliveryAddress> _items = [];
   bool _loaded = false;
 
-  String? get ownerEmail => _ownerEmail;
+  String? get ownerEmail => _ownerKey;
   bool get isLoaded => _loaded;
   List<DeliveryAddress> get items => List.unmodifiable(_items);
   int get count => _items.length;
@@ -873,21 +889,36 @@ class AddressesController extends ChangeNotifier {
     return _items.isEmpty ? null : _items.first;
   }
 
+  String? _userKey(AuthUser? user) {
+    if (user == null) {
+      return null;
+    }
+    if (user.id != null) {
+      return 'id_${user.id}';
+    }
+    final phone = user.phone?.trim() ?? '';
+    if (phone.isNotEmpty) {
+      return phone.toLowerCase();
+    }
+    final email = user.email.trim().toLowerCase();
+    return email.isEmpty ? null : email;
+  }
+
   Future<void> syncUser(AuthUser? user) async {
-    final email = user?.email.trim().toLowerCase();
-    if (email == null || email.isEmpty) {
-      _ownerEmail = null;
+    final key = _userKey(user);
+    if (key == null) {
+      _ownerKey = null;
       _items.clear();
       _loaded = true;
       notifyListeners();
       return;
     }
 
-    if (_ownerEmail == email && _loaded) {
+    if (_ownerKey == key && _loaded) {
       return;
     }
 
-    _ownerEmail = email;
+    _ownerKey = key;
     await _loadFromApi();
   }
 

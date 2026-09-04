@@ -17,7 +17,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -27,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
@@ -43,7 +41,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       await auth.register(
         name: _nameController.text,
-        email: _emailController.text,
         phone: _phoneController.text,
         password: _passwordController.text,
       );
@@ -101,28 +98,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 AuthTextField(
-                  controller: _emailController,
-                  label: 'البريد الإلكتروني',
-                  hint: 'example@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    final text = value?.trim() ?? '';
-                    if (text.isEmpty || !text.contains('@')) {
-                      return 'بريد إلكتروني غير صالح';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                AuthTextField(
                   controller: _phoneController,
                   label: 'رقم الجوال',
                   hint: '01xxxxxxxxx',
                   keyboardType: TextInputType.phone,
                   validator: (value) {
                     final text = value?.trim() ?? '';
-                    if (text.length < 10) {
-                      return 'أدخل رقم جوال صحيح';
+                    final digits = text.replaceAll(RegExp(r'\D'), '');
+                    if (!RegExp(r'^01[0125]\d{8}$').hasMatch(digits) &&
+                        !RegExp(r'^201[0125]\d{8}$').hasMatch(digits)) {
+                      return 'أدخل رقم جوال مصري صحيح';
                     }
                     return null;
                   },

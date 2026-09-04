@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Phone;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -38,6 +39,15 @@ class Customer extends Authenticatable
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Customer $customer): void {
+            if ($customer->phone !== null) {
+                $customer->phone = Phone::normalize($customer->phone);
+            }
+        });
     }
 
     public function orders(): HasMany

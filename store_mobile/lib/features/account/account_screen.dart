@@ -38,7 +38,11 @@ class AccountScreen extends StatelessWidget {
           isLoggedIn: auth.isLoggedIn,
           name: auth.isLoggedIn ? user!.name : 'زائر',
           subtitle: auth.isLoggedIn
-              ? user!.email
+              ? ((user!.phone?.trim().isNotEmpty ?? false)
+                  ? user.phone!.trim()
+                  : (user.email.trim().isNotEmpty
+                      ? user.email
+                      : 'حساب مسجّل'))
               : 'سجّل الدخول لإدارة طلباتك ونقاطك',
           avatarBytes: user?.avatarBytes,
           onLoginTap: auth.isLoggedIn ? null : () => _openLogin(context),
@@ -326,7 +330,7 @@ class AccountScreen extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'تعذر اختيار الصورة. تأكد من صلاحيات المعرض/الكاميرا',
+              'تعذر اختيار الصورة. حاول مرة أخرى من المعرض',
               style: AppFonts.tajawal(),
             ),
           ),

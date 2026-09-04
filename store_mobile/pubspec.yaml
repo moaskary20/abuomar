@@ -1,7 +1,7 @@
 name: store_mobile
 description: تطبيق حلوانى ابوعمر — متجر حلويات عربي
 publish_to: 'none'
-version: 1.0.0+1
+version: 2.0.0+3
 
 environment:
   sdk: ^3.10.7

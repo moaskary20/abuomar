@@ -51,15 +51,20 @@ class CustomerResource extends Resource
                 Section::make('بيانات العميل')
                     ->schema([
                         TextInput::make('name')->label('الاسم')->required()->maxLength(255),
+                        TextInput::make('phone')
+                            ->label('الجوال')
+                            ->tel()
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->helperText('يُستخدم لتسجيل الدخول من تطبيق الموبايل'),
                         TextInput::make('email')->label('البريد الإلكتروني')->email()->unique(ignoreRecord: true),
-                        TextInput::make('phone')->label('الجوال')->tel(),
                         TextInput::make('password')
                             ->label('كلمة مرور التطبيق')
                             ->password()
                             ->revealable()
                             ->dehydrated(fn (?string $state): bool => filled($state))
                             ->required(fn (string $operation): bool => $operation === 'create')
-                            ->helperText('تُستخدم لتسجيل الدخول من تطبيق الموبايل'),
+                            ->helperText('تُستخدم مع رقم الجوال لتسجيل الدخول من التطبيق'),
                         TextInput::make('city')->label('المدينة'),
                         Textarea::make('address')->label('العنوان')->columnSpanFull(),
                         Textarea::make('notes')->label('ملاحظات')->columnSpanFull(),

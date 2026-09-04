@@ -13,5 +13,6 @@
 
 الفئة: طعام وشراب
 البريد: info@aboomarpastry.com
-الموقع: https://aboomarpastry.com
-سياسة الخصوصية: ارفع الملف store_listing/privacy.html على الموقع ثم ضع رابطه في Play Console.
+الموقع: https://abouomar.caesar-agency.co.uk
+سياسة الخصوصية: https://abouomar.caesar-agency.co.uk/privacy-policy
+حذف الحساب: https://abouomar.caesar-agency.co.uk/delete-account

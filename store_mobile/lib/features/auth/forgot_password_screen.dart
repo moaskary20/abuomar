@@ -15,12 +15,12 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _sent = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -30,14 +30,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
 
     try {
-      await context.read<AuthController>().sendPasswordReset(_emailController.text);
+      await context.read<AuthController>().sendPasswordReset(_phoneController.text);
       if (!mounted) return;
 
       setState(() => _sent = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'إذا كان البريد مسجّلاً، تواصل مع المتجر لإعادة تعيين كلمة المرور',
+            'إذا كان رقم الجوال مسجّلاً، تواصل مع المتجر لإعادة تعيين كلمة المرور',
             style: AppFonts.tajawal(),
           ),
         ),
@@ -72,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 const AuthHeader(
                   title: 'استعادة الحساب',
-                  subtitle: 'أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور',
+                  subtitle: 'أدخل رقم جوالك المسجّل وتواصل مع المتجر لإعادة تعيين كلمة المرور',
                 ),
                 const SizedBox(height: 28),
                 if (_sent)
@@ -85,20 +85,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       border: Border.all(color: Colors.green.withValues(alpha: 0.25)),
                     ),
                     child: Text(
-                      'تحقق من بريدك الإلكتروني واتبع التعليمات لإعادة تعيين كلمة المرور.',
+                      'تم استلام طلبك. تواصل مع المتجر برقم الجوال لإعادة تعيين كلمة المرور.',
                       style: AppFonts.tajawal(height: 1.5, color: AppTheme.cocoa),
                     ),
                   ),
                 AuthTextField(
-                  controller: _emailController,
-                  label: 'البريد الإلكتروني',
-                  hint: 'example@email.com',
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _phoneController,
+                  label: 'رقم الجوال',
+                  hint: '01xxxxxxxxx',
+                  keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.done,
                   validator: (value) {
                     final text = value?.trim() ?? '';
-                    if (text.isEmpty || !text.contains('@')) {
-                      return 'أدخل بريداً إلكترونياً صالحاً';
+                    final digits = text.replaceAll(RegExp(r'\D'), '');
+                    if (digits.length < 10) {
+                      return 'أدخل رقم جوال صحيح';
                     }
                     return null;
                   },
@@ -113,7 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : Text(
-                          _sent ? 'إعادة الإرسال' : 'إرسال رابط الاستعادة',
+                          _sent ? 'إعادة الإرسال' : 'إرسال طلب الاستعادة',
                           style: AppFonts.tajawal(fontWeight: FontWeight.w700, fontSize: 16),
                         ),
                 ),
