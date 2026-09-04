@@ -1,3 +1,3 @@
 <x-filament-panels::page>
-    {{-- Content is rendered via the page content() schema --}}
+    {{ $this->content }}
 </x-filament-panels::page>
