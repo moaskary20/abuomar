@@ -310,6 +310,7 @@ class StorePaymentMethod {
     this.isActive = true,
     this.isDefault = false,
     this.requiresOnline = false,
+    this.gateway,
   });
 
   final int id;
@@ -321,6 +322,9 @@ class StorePaymentMethod {
   final bool isActive;
   final bool isDefault;
   final bool requiresOnline;
+  final Map<String, dynamic>? gateway;
+
+  bool get isFawry => code == 'fawry';
 
   factory StorePaymentMethod.fromJson(Map<String, dynamic> json) {
     return StorePaymentMethod(
@@ -335,6 +339,9 @@ class StorePaymentMethod {
       isActive: _jsonBool(json['is_active'], fallback: true),
       isDefault: _jsonBool(json['is_default']),
       requiresOnline: _jsonBool(json['requires_online']),
+      gateway: json['gateway'] is Map
+          ? Map<String, dynamic>.from(json['gateway'] as Map)
+          : null,
     );
   }
 }

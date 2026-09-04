@@ -86,7 +86,9 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
         'wallet' => Icons.account_balance_wallet_rounded,
         'money' => Icons.payments_rounded,
         'cod' => Icons.payments_rounded,
-        _ => Icons.payments_rounded,
+        _ => method.isFawry
+            ? Icons.account_balance_rounded
+            : Icons.payments_rounded,
       };
 
   Future<void> _placeOrder() async {
@@ -392,7 +394,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                       },
                     ),
                   ),
-                if (selected.requiresOnline)
+                if (selected.requiresOnline || selected.isFawry)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -403,7 +405,14 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(
-                          'هذه الوسيلة إلكترونية — سيتم تسجيل الطلب الآن وإكمال الدفع لاحقاً عند التفعيل الكامل.',
+                          selected.isFawry
+                              ? ((selected.gateway?['customer_instructions'] as String?)
+                                          ?.trim()
+                                          .isNotEmpty ==
+                                      true
+                                  ? (selected.gateway!['customer_instructions'] as String)
+                                  : 'بعد تأكيد الطلب ستصلك تعليمات الدفع عبر فوري.')
+                              : 'هذه الوسيلة إلكترونية — سيتم تسجيل الطلب الآن وإكمال الدفع لاحقاً عند التفعيل الكامل.',
                           style: AppFonts.tajawal(
                             color: const Color(0xFF9B4D1B),
                             fontSize: 12.5,

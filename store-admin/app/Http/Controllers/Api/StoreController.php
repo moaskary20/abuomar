@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Coupon;
 use App\Models\CustomerAddress;
+use App\Models\FawrySetting;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentMethod;
@@ -43,19 +44,32 @@ class StoreController extends Controller
             ->active()
             ->ordered()
             ->get()
-            ->map(fn (PaymentMethod $m) => [
-                'id' => $m->id,
-                'code' => $m->code,
-                'name' => $m->name,
-                'description' => $m->description,
-                'icon' => $m->icon ?: 'payments',
-                'sort_order' => (int) $m->sort_order,
-                'is_active' => (bool) $m->is_active,
-                'is_default' => (bool) $m->is_default,
-                'requires_online' => (bool) $m->requires_online,
-            ]);
+            ->map(function (PaymentMethod $m) {
+                $payload = [
+                    'id' => $m->id,
+                    'code' => $m->code,
+                    'name' => $m->name,
+                    'description' => $m->description,
+                    'icon' => $m->icon ?: 'payments',
+                    'sort_order' => (int) $m->sort_order,
+                    'is_active' => (bool) $m->is_active,
+                    'is_default' => (bool) $m->is_default,
+                    'requires_online' => (bool) $m->requires_online,
+                ];
 
-        return response()->json(['data' => $items]);
+                if ($m->code === FawrySetting::CODE) {
+                    $payload['gateway'] = FawrySetting::publicConfig();
+                }
+
+                return $payload;
+            });
+
+        return response()->json([
+            'data' => $items,
+            'gateways' => [
+                'fawry' => FawrySetting::publicConfig(),
+            ],
+        ]);
     }
 
     public function validateCoupon(Request $request): JsonResponse

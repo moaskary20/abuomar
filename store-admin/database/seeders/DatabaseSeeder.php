@@ -89,6 +89,38 @@ class DatabaseSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
+        | FawryPay Gateway Settings
+        |--------------------------------------------------------------------------
+        */
+
+        StoreSetting::setValue('fawry_enabled', '0', 'fawry');
+        StoreSetting::setValue('fawry_mode', 'sandbox', 'fawry');
+        StoreSetting::setValue('fawry_merchant_code', '', 'fawry');
+        StoreSetting::setValue('fawry_secure_key', '', 'fawry');
+        StoreSetting::setValue('fawry_display_name', 'فوري', 'fawry');
+        StoreSetting::setValue(
+            'fawry_description',
+            'ادفع عبر فوري: كود مرجعي، بطاقة، أو محفظة إلكترونية',
+            'fawry'
+        );
+        StoreSetting::setValue('fawry_language', 'ar-eg', 'fawry');
+        StoreSetting::setValue('fawry_currency', 'EGP', 'fawry');
+        StoreSetting::setValue('fawry_channels', 'PayAtFawry,CARD,MWALLET', 'fawry');
+        StoreSetting::setValue('fawry_enable_3ds', '1', 'fawry');
+        StoreSetting::setValue('fawry_return_url', '', 'fawry');
+        StoreSetting::setValue('fawry_webhook_url', '', 'fawry');
+        StoreSetting::setValue('fawry_staging_base_url', 'https://atfawry.fawrystaging.com', 'fawry');
+        StoreSetting::setValue('fawry_live_base_url', 'https://www.atfawry.com', 'fawry');
+        StoreSetting::setValue(
+            'fawry_customer_instructions',
+            'بعد تأكيد الطلب ستصلك تعليمات الدفع عبر فوري (كود مرجعي أو رابط دفع).',
+            'fawry'
+        );
+
+        app(\App\Services\FawryService::class)->syncPaymentMethod();
+
+        /*
+        |--------------------------------------------------------------------------
         | Loyalty Settings
         |--------------------------------------------------------------------------
         */
