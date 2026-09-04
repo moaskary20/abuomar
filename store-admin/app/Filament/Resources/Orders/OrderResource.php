@@ -300,8 +300,17 @@ class OrderResource extends Resource
     {
         return $table
             ->defaultSort('id', 'desc')
+            ->recordClasses(fn (Order $record): ?string => $record->isUnviewedByAdmin()
+                ? 'bg-danger-50 dark:bg-danger-950/30 font-semibold'
+                : null)
             ->columns([
-                TextColumn::make('order_number')->label('رقم الطلب')->searchable()->sortable()->copyable(),
+                TextColumn::make('order_number')
+                    ->label('رقم الطلب')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->description(fn (Order $record): ?string => $record->isUnviewedByAdmin() ? 'طلب جديد' : null)
+                    ->weight(fn (Order $record) => $record->isUnviewedByAdmin() ? 'bold' : null),
                 TextColumn::make('customer_name')->label('العميل')->searchable(),
                 TextColumn::make('status')
                     ->label('الحالة')

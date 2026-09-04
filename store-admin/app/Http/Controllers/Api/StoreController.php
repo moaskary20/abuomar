@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ShippingMethod;
+use App\Services\AdminOrderNotifier;
 use App\Services\LoyaltyService;
 use App\Support\ApiMedia;
 use Illuminate\Http\JsonResponse;
@@ -317,6 +318,8 @@ class StoreController extends Controller
 
             return $order->load('items.product:id,image');
         });
+
+        app(AdminOrderNotifier::class)->notifyNewOrder($order);
 
         return response()->json([
             'message' => 'تم إنشاء الطلب بنجاح',
