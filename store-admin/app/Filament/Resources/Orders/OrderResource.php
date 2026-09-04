@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -27,6 +28,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use UnitEnum;
+
+use function Filament\Support\original_request;
 
 class OrderResource extends Resource
 {
@@ -65,6 +68,35 @@ class OrderResource extends Resource
         return $count > 0
             ? "{$count} طلب جديد لم يُفتح"
             : null;
+    }
+
+    /**
+     * @return array<NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        if (! static::hasPage('index')) {
+            return [];
+        }
+
+        $hasUnread = Order::unviewedCount() > 0;
+
+        return [
+            NavigationItem::make(static::getNavigationLabel())
+                ->key(static::class)
+                ->group(static::getNavigationGroup())
+                ->parentItem(static::getNavigationParentItem())
+                ->icon(static::getNavigationIcon())
+                ->activeIcon(static::getActiveNavigationIcon())
+                ->isActiveWhen(fn (): bool => original_request()->routeIs(static::getNavigationItemActiveRoutePattern()))
+                ->badge(static::getNavigationBadge(), color: static::getNavigationBadgeColor())
+                ->badgeTooltip(static::getNavigationBadgeTooltip())
+                ->sort(static::getNavigationSort())
+                ->url(static::getNavigationUrl())
+                ->extraAttributes($hasUnread ? [
+                    'class' => 'fi-orders-unread',
+                ] : []),
+        ];
     }
 
     public static function form(Schema $schema): Schema
