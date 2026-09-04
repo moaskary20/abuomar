@@ -66,7 +66,9 @@ class PaymentMethodResource extends Resource
                             ->required(),
                         Toggle::make('is_active')
                             ->label('نشط في التطبيق')
-                            ->default(true),
+                            ->helperText('يجب تفعيل هذا الخيار حتى تظهر الوسيلة في شاشة الدفع')
+                            ->default(true)
+                            ->required(),
                         Toggle::make('is_default')
                             ->label('الافتراضية')
                             ->helperText('تُختار تلقائياً في صفحة الدفع')
@@ -96,7 +98,16 @@ class PaymentMethodResource extends Resource
                 IconColumn::make('requires_online')->label('إلكتروني')->boolean()->toggleable(),
             ])
             ->recordActions([
-                EditAction::make()->label('تعديل'),
+                EditAction::make()
+                    ->label('تعديل')
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['code'] = strtolower(trim((string) ($data['code'] ?? '')));
+                        $data['is_active'] = (bool) ($data['is_active'] ?? false);
+                        $data['is_default'] = (bool) ($data['is_default'] ?? false);
+                        $data['requires_online'] = (bool) ($data['requires_online'] ?? false);
+
+                        return $data;
+                    }),
                 DeleteAction::make()->label('حذف'),
             ])
             ->toolbarActions([

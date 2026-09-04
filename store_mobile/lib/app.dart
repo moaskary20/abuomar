@@ -25,6 +25,8 @@ class AboOmarApp extends StatelessWidget {
           create: (_) {
             final catalog = CatalogStore();
             MockStoreData.bind(catalog);
+            // مزامنة فورية + عند كل تحديث (تجنّب سباق listener بعد انتهاء التحميل)
+            PaymentMethodsCatalog.replaceAll(catalog.paymentMethods);
             catalog.addListener(() {
               PaymentMethodsCatalog.replaceAll(catalog.paymentMethods);
             });

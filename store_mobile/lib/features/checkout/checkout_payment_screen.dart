@@ -23,16 +23,18 @@ class CheckoutPaymentScreen extends StatefulWidget {
 }
 
 class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
-  late String _methodCode;
+  String? _methodCode;
   final _notesController = TextEditingController();
   bool _submitting = false;
-
-  List<StorePaymentMethod> get _methods => PaymentMethodsCatalog.active;
+  bool _loadingMethods = true;
+  String? _methodsError;
 
   @override
   void initState() {
     super.initState();
-    _methodCode = PaymentMethodsCatalog.defaultMethod.code;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshPaymentMethods();
+    });
   }
 
   @override
@@ -41,10 +43,49 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
     super.dispose();
   }
 
+  Future<void> _refreshPaymentMethods() async {
+    final catalog = context.read<CatalogStore>();
+    setState(() {
+      _loadingMethods = true;
+      _methodsError = null;
+    });
+
+    try {
+      await catalog.refreshPaymentMethods();
+      if (!mounted) {
+        return;
+      }
+      final methods = catalog.activePaymentMethods;
+      final preferred = _methodCode;
+      final stillValid =
+          preferred != null && methods.any((m) => m.code == preferred);
+      setState(() {
+        _loadingMethods = false;
+        _methodCode =
+            stillValid ? preferred : catalog.defaultPaymentMethod.code;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      final methods = catalog.activePaymentMethods;
+      setState(() {
+        _loadingMethods = false;
+        _methodsError = methods.isEmpty
+            ? 'تعذر تحميل وسائل الدفع. حاول مرة أخرى'
+            : null;
+        _methodCode ??= catalog.defaultPaymentMethod.code;
+      });
+    }
+  }
+
   IconData _iconFor(StorePaymentMethod method) => switch (method.icon) {
         'credit_card' => Icons.credit_card_rounded,
         'account_balance' => Icons.account_balance_rounded,
         'account_balance_wallet' => Icons.account_balance_wallet_rounded,
+        'wallet' => Icons.account_balance_wallet_rounded,
+        'money' => Icons.payments_rounded,
+        'cod' => Icons.payments_rounded,
         _ => Icons.payments_rounded,
       };
 
@@ -58,6 +99,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
     final orders = context.read<OrdersController>();
     final loyalty = context.read<LoyaltyController>();
     final catalog = context.read<CatalogStore>();
+    final methods = catalog.activePaymentMethods;
 
     if (!auth.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,12 +115,25 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       return;
     }
 
+    if (methods.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'لا توجد وسائل دفع متاحة حالياً',
+            style: AppFonts.tajawal(),
+          ),
+        ),
+      );
+      await _refreshPaymentMethods();
+      return;
+    }
+
     setState(() => _submitting = true);
     HapticFeedback.mediumImpact();
 
-    final method = _methods.firstWhere(
+    final method = methods.firstWhere(
       (m) => m.code == _methodCode,
-      orElse: () => PaymentMethodsCatalog.defaultMethod,
+      orElse: () => catalog.defaultPaymentMethod,
     );
 
     final shippingMethods = catalog.shippingMethods;
@@ -210,10 +265,14 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartController>();
-    final selected = _methods.firstWhere(
-      (m) => m.code == _methodCode,
-      orElse: () => PaymentMethodsCatalog.defaultMethod,
-    );
+    final catalog = context.watch<CatalogStore>();
+    final methods = catalog.activePaymentMethods;
+    final selected = methods.isEmpty
+        ? catalog.defaultPaymentMethod
+        : methods.firstWhere(
+            (m) => m.code == _methodCode,
+            orElse: () => catalog.defaultPaymentMethod,
+          );
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF6F1),
@@ -243,32 +302,96 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-                    child: Text(
-                      'وسيلة الدفع',
-                      style: AppFonts.tajawal(fontSize: 16, fontWeight: FontWeight.w900),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'وسيلة الدفع',
+                            style: AppFonts.tajawal(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        if (!_loadingMethods)
+                          IconButton(
+                            tooltip: 'تحديث',
+                            onPressed: _refreshPaymentMethods,
+                            icon: const Icon(Icons.refresh_rounded, size: 20),
+                          ),
+                      ],
                     ),
                   ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList.separated(
-                    itemCount: _methods.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 10),
-                    itemBuilder: (context, index) {
-                      final method = _methods[index];
-                      final active = method.code == _methodCode;
-                      return _PaymentMethodCard3D(
-                        method: method,
-                        icon: _iconFor(method),
-                        selected: active,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _methodCode = method.code);
-                        },
-                      );
-                    },
+                if (_loadingMethods)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 28),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2.4),
+                      ),
+                    ),
+                  )
+                else if (methods.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppTheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              _methodsError ??
+                                  'لا توجد وسائل دفع نشطة من لوحة التحكم',
+                              textAlign: TextAlign.center,
+                              style: AppFonts.tajawal(
+                                color: AppTheme.cocoa,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            FilledButton.tonal(
+                              onPressed: _refreshPaymentMethods,
+                              child: Text(
+                                'إعادة المحاولة',
+                                style: AppFonts.tajawal(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList.separated(
+                      itemCount: methods.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final method = methods[index];
+                        final active = method.code == _methodCode;
+                        return _PaymentMethodCard3D(
+                          method: method,
+                          icon: _iconFor(method),
+                          selected: active,
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _methodCode = method.code);
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
                 if (selected.requiresOnline)
                   SliverToBoxAdapter(
                     child: Padding(
@@ -371,7 +494,9 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: _submitting ? null : _placeOrder,
+                    onPressed: (_submitting || _loadingMethods || methods.isEmpty)
+                        ? null
+                        : _placeOrder,
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(

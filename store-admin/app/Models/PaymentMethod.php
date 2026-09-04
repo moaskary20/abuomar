@@ -40,6 +40,8 @@ class PaymentMethod extends Model
     protected static function booted(): void
     {
         static::saving(function (PaymentMethod $method): void {
+            $method->code = strtolower(trim((string) $method->code));
+
             if (! $method->is_default) {
                 return;
             }

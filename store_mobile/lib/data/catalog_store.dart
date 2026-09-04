@@ -105,7 +105,9 @@ class CatalogStore extends ChangeNotifier {
         shippingMethods = _mapList(results[4], ShippingOption.fromJson);
       }
 
-      if (products.isNotEmpty || categories.isNotEmpty) {
+      PaymentMethodsCatalog.replaceAll(paymentMethods);
+
+      if (products.isNotEmpty || categories.isNotEmpty || paymentMethods.isNotEmpty) {
         loaded = true;
         error = null;
       } else {
@@ -117,6 +119,20 @@ class CatalogStore extends ChangeNotifier {
     } finally {
       loading = false;
       notifyListeners();
+    }
+  }
+
+  /// تحديث وسائل الدفع فقط — يُستدعى عند فتح شاشة الدفع
+  Future<void> refreshPaymentMethods() async {
+    try {
+      await _api.ensureBase();
+      final json = await _api.get('/api/payment-methods');
+      paymentMethods = _mapList(json, StorePaymentMethod.fromJson);
+      PaymentMethodsCatalog.replaceAll(paymentMethods);
+      notifyListeners();
+    } catch (e, st) {
+      debugPrint('CatalogStore.refreshPaymentMethods failed: $e\n$st');
+      rethrow;
     }
   }
 
