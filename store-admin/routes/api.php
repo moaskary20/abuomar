@@ -23,6 +23,7 @@ Route::get('products/{id}', [CatalogController::class, 'product'])->whereNumber(
 
 Route::get('shipping-methods', [StoreController::class, 'shippingMethods']);
 Route::get('payment-methods', [StoreController::class, 'paymentMethods']);
+Route::get('store-status', [StoreController::class, 'storeStatus']);
 Route::post('coupons/validate', [StoreController::class, 'validateCoupon']);
 
 Route::middleware('auth:sanctum')->group(function () {

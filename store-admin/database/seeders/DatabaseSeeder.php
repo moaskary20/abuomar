@@ -87,6 +87,13 @@ class DatabaseSeeder extends Seeder
             'sales'
         );
 
+        StoreSetting::setValue('app_active', '1', 'general');
+        StoreSetting::setValue(
+            'app_inactive_message',
+            'شكرا لكم رجاء التوجهه الى اقرب فرع فى منطقتك',
+            'general'
+        );
+
         /*
         |--------------------------------------------------------------------------
         | FawryPay Gateway Settings

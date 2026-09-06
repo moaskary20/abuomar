@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/config.dart';
 import '../../core/theme.dart';
 import '../../widgets/brand_hero_panel.dart';
+import '../../widgets/orders_gate.dart';
 import '../../data/app_state.dart';
 import '../../models/store_models.dart';
 import '../../widgets/store_network_image.dart';
@@ -104,7 +105,7 @@ class _CheckoutConfirmScreenState extends State<CheckoutConfirmScreen> {
     }
   }
 
-  void _continueToPayment() {
+  Future<void> _continueToPayment() async {
     if (_selectedAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -120,6 +121,11 @@ class _CheckoutConfirmScreenState extends State<CheckoutConfirmScreen> {
           ),
         ),
       );
+      return;
+    }
+
+    final allowed = await ensureOrdersEnabled(context);
+    if (!allowed || !mounted) {
       return;
     }
 

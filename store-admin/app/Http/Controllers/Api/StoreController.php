@@ -11,6 +11,7 @@ use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ShippingMethod;
+use App\Models\StoreSetting;
 use App\Services\AdminOrderNotifier;
 use App\Services\LoyaltyService;
 use App\Support\ApiMedia;
@@ -21,6 +22,13 @@ use Illuminate\Validation\ValidationException;
 
 class StoreController extends Controller
 {
+    public function storeStatus(): JsonResponse
+    {
+        return response()->json([
+            'data' => StoreSetting::publicStatus(),
+        ]);
+    }
+
     public function shippingMethods(): JsonResponse
     {
         $items = ShippingMethod::query()
@@ -187,6 +195,14 @@ class StoreController extends Controller
 
     public function placeOrder(Request $request, LoyaltyService $loyalty): JsonResponse
     {
+        if (! StoreSetting::isAppActive()) {
+            return response()->json([
+                'message' => StoreSetting::appInactiveMessage(),
+                'code' => 'app_inactive',
+                'data' => StoreSetting::publicStatus(),
+            ], 403);
+        }
+
         $data = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],

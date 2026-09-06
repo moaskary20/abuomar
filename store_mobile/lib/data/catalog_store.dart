@@ -17,9 +17,15 @@ class CatalogStore extends ChangeNotifier {
   List<StorePaymentMethod> paymentMethods = [];
   List<ShippingOption> shippingMethods = [];
 
+  bool appActive = true;
+  String appInactiveMessage =
+      'شكرا لكم رجاء التوجهه الى اقرب فرع فى منطقتك';
+
   bool loading = false;
   bool loaded = false;
   String? error;
+
+  bool get ordersEnabled => appActive;
 
   List<Product> get featured {
     final marked =
@@ -87,6 +93,7 @@ class CatalogStore extends ChangeNotifier {
         _safeGet('/api/products'),
         _safeGet('/api/payment-methods'),
         _safeGet('/api/shipping-methods'),
+        _safeGet('/api/store-status'),
       ]);
 
       if (results[0] != null) {
@@ -104,6 +111,9 @@ class CatalogStore extends ChangeNotifier {
       if (results[4] != null) {
         shippingMethods = _mapList(results[4], ShippingOption.fromJson);
       }
+      if (results[5] != null) {
+        _applyStoreStatus(results[5]);
+      }
 
       PaymentMethodsCatalog.replaceAll(paymentMethods);
 
@@ -119,6 +129,36 @@ class CatalogStore extends ChangeNotifier {
     } finally {
       loading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> refreshStoreStatus() async {
+    try {
+      await _api.ensureBase();
+      final json = await _api.get('/api/store-status');
+      _applyStoreStatus(json);
+      notifyListeners();
+    } catch (e, st) {
+      debugPrint('CatalogStore.refreshStoreStatus failed: $e\n$st');
+    }
+  }
+
+  void _applyStoreStatus(Map<String, dynamic>? json) {
+    final data = json?['data'];
+    if (data is! Map) {
+      return;
+    }
+    final map = Map<String, dynamic>.from(data);
+    final active = map['app_active'] ?? map['orders_enabled'];
+    if (active is bool) {
+      appActive = active;
+    } else if (active != null) {
+      final s = '$active'.trim().toLowerCase();
+      appActive = s == '1' || s == 'true' || s == 'yes';
+    }
+    final message = (map['inactive_message'] as String?)?.trim();
+    if (message != null && message.isNotEmpty) {
+      appInactiveMessage = message;
     }
   }
 

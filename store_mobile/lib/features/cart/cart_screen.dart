@@ -10,6 +10,7 @@ import '../../widgets/brand_hero_panel.dart';
 import '../../widgets/store_network_image.dart';
 import '../auth/login_screen.dart';
 import '../checkout/checkout_confirm_screen.dart';
+import '../../widgets/orders_gate.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -139,7 +140,7 @@ class _CartScreenState extends State<CartScreen>
             loyaltyHint: auth.isLoggedIn
                 ? 'ستكسب ${loyalty.earnableFromOrder(cart.payableTotal)} نقطة ولاء'
                 : null,
-            onCheckout: () {
+            onCheckout: () async {
               if (!auth.isLoggedIn) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -152,6 +153,11 @@ class _CartScreenState extends State<CartScreen>
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
+                return;
+              }
+
+              final allowed = await ensureOrdersEnabled(context);
+              if (!allowed || !context.mounted) {
                 return;
               }
 

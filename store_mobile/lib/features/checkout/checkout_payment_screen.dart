@@ -12,6 +12,7 @@ import '../../widgets/brand_hero_panel.dart';
 import '../../widgets/celebration_confetti.dart';
 import '../auth/login_screen.dart';
 import '../orders/orders_screen.dart';
+import '../../widgets/orders_gate.dart';
 
 class CheckoutPaymentScreen extends StatefulWidget {
   const CheckoutPaymentScreen({super.key, required this.address});
@@ -110,6 +111,11 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
+      return;
+    }
+
+    final allowed = await ensureOrdersEnabled(context);
+    if (!allowed || !mounted) {
       return;
     }
 

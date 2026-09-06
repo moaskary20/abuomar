@@ -52,6 +52,8 @@ class ManageStoreSettings extends Page
             'store_email' => StoreSetting::getValue('store_email'),
             'store_phone' => StoreSetting::getValue('store_phone'),
             'store_address' => StoreSetting::getValue('store_address'),
+            'app_active' => StoreSetting::isAppActive(),
+            'app_inactive_message' => StoreSetting::appInactiveMessage(),
             'currency' => StoreSetting::getValue('currency', 'EGP'),
             'tax_rate' => StoreSetting::getValue('tax_rate', '15'),
             'low_stock_alert' => (bool) StoreSetting::getValue('low_stock_alert', true),
@@ -72,6 +74,23 @@ class ManageStoreSettings extends Page
                         Textarea::make('store_address')->label('عنوان المتجر')->columnSpanFull(),
                     ])
                     ->columns(2),
+
+                Section::make('حالة التطبيق والطلبات')
+                    ->description('عند إيقاف التطبيق لن يتمكن العملاء من إتمام أي طلب من التطبيق')
+                    ->schema([
+                        Toggle::make('app_active')
+                            ->label('التطبيق نشط (يستقبل الطلبات)')
+                            ->helperText('عطّله لإيقاف الطلبات مؤقتاً مع إظهار رسالة للعميل')
+                            ->inline(false)
+                            ->live(),
+                        Textarea::make('app_inactive_message')
+                            ->label('رسالة إيقاف الطلبات')
+                            ->rows(3)
+                            ->required()
+                            ->helperText('تظهر للعميل عند محاولة إتمام طلب والتطبيق غير نشط')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(1),
 
                 Section::make('إعدادات البيع')
                     ->schema([
@@ -194,7 +213,7 @@ class ManageStoreSettings extends Page
     {
         $data = $this->form->getState();
 
-        $generalKeys = ['store_name', 'store_email', 'store_phone', 'store_address'];
+        $generalKeys = ['store_name', 'store_email', 'store_phone', 'store_address', 'app_active', 'app_inactive_message'];
         $salesKeys = ['currency', 'tax_rate', 'order_prefix', 'low_stock_alert'];
 
         foreach ($data as $key => $value) {

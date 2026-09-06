@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../data/app_state.dart';
 import '../../models/store_models.dart';
 import '../../widgets/cart_animation.dart';
+import '../../widgets/orders_gate.dart';
 import '../../widgets/store_network_image.dart';
 import '../auth/login_screen.dart';
 
@@ -88,6 +89,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
       return;
+    }
+
+    if (goCheckout) {
+      final allowed = await ensureOrdersEnabled(context);
+      if (!allowed || !mounted) {
+        return;
+      }
     }
 
     if (!goCheckout) {

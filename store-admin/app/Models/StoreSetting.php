@@ -29,4 +29,42 @@ class StoreSetting extends Model
 
         Cache::forget("store_setting_{$key}");
     }
+
+    public static function isAppActive(): bool
+    {
+        $value = static::getValue('app_active', '1');
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+
+        return ! in_array($normalized, ['0', 'false', 'no', 'off', ''], true);
+    }
+
+    public static function appInactiveMessage(): string
+    {
+        $message = trim((string) static::getValue(
+            'app_inactive_message',
+            'شكرا لكم رجاء التوجهه الى اقرب فرع فى منطقتك',
+        ));
+
+        return $message !== ''
+            ? $message
+            : 'شكرا لكم رجاء التوجهه الى اقرب فرع فى منطقتك';
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function publicStatus(): array
+    {
+        $active = self::isAppActive();
+
+        return [
+            'app_active' => $active,
+            'orders_enabled' => $active,
+            'inactive_message' => self::appInactiveMessage(),
+        ];
+    }
 }
